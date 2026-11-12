@@ -36,9 +36,7 @@ void setup() {
     myGPS.init(12, 14);
 
     cdh.println("[INFO] Đang lắng nghe luồng NMEA và tự động giải mã...");
-    cdh.println("[LƯU Ý] Module GPS cần bắt được ít nhất 4 vệ tinh để khóa tọa độ 3D.");
-    cdh.println("        Nếu đang ở trong phòng kín, hãy đặt CubeSat gần cửa sổ.");
-    cdh.println("==================================================\n");
+    cdh.println("[INFO] Cho tin hieu GPS (toi thieu 4 ve tinh de co 3D fix)...");
 }
 
 void loop() {
