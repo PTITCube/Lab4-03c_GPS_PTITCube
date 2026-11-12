@@ -15,36 +15,37 @@
  */
 
 #include <Arduino.h>
+
 #include <PTITCube.h>
+
+PTIT_CDH cdh;
 
 // Khai báo đối tượng GPS từ thư viện PTITCube
 PTIT_GPS myGPS;
 
 void setup() {
-    Serial.begin(115200);
-    while (!Serial) { delay(10); }
+    cdh.begin(115200);
+    while (!cdh) { delay(10); }
 
-    Serial.println("\n==================================================");
-    Serial.println("  PTITCUBE - LAB 4-03c: GIẢI MÃ ĐỊNH VỊ BẰNG PTITCUBE ");
-    Serial.println("==================================================");
-    Serial.println("[INFO] Khởi tạo module GPS qua thư viện PTITCube...");
+        cdh.println("  PTITCUBE - LAB 4-03c: GIẢI MÃ ĐỊNH VỊ BẰNG PTITCUBE ");
+        cdh.println("[INFO] Khởi tạo module GPS qua thư viện PTITCube...");
     
     // myGPS.init(gpsSelectPin, camSelectPin):
     // Tự động cấu hình UART2 (9600 baud, RX=16, TX=17) và điều khiển MUX 74HC4066
     // (chốt Pin 14 LOW tắt Cam, Pin 12 HIGH mở GPS)
     myGPS.init(12, 14);
 
-    Serial.println("[INFO] Đang lắng nghe luồng NMEA và tự động giải mã...");
-    Serial.println("[LƯU Ý] Module GPS cần bắt được ít nhất 4 vệ tinh để khóa tọa độ 3D.");
-    Serial.println("        Nếu đang ở trong phòng kín, hãy đặt CubeSat gần cửa sổ.");
-    Serial.println("==================================================\n");
+    cdh.println("[INFO] Đang lắng nghe luồng NMEA và tự động giải mã...");
+    cdh.println("[LƯU Ý] Module GPS cần bắt được ít nhất 4 vệ tinh để khóa tọa độ 3D.");
+    cdh.println("        Nếu đang ở trong phòng kín, hãy đặt CubeSat gần cửa sổ.");
+    cdh.println("==================================================\n");
 }
 
 void loop() {
     // Luôn luôn gọi update() trong vòng lặp loop để nạp từng byte từ UART vào bộ giải mã
     myGPS.update();
 
-    // Định kỳ mỗi 3 giây xuất dữ liệu định vị hoàn chỉnh đã chuyển đổi ra Serial Monitor
+    // Định kỳ mỗi 3 giây xuất dữ liệu định vị hoàn chỉnh đã chuyển đổi ra cdh Monitor
     static unsigned long lastPrint = 0;
     if (millis() - lastPrint >= 3000) {
         lastPrint = millis();
@@ -54,27 +55,25 @@ void loop() {
         float lng = myGPS.getLng();
         bool hasFix = (sats >= 4 && (lat != 0.0 || lng != 0.0));
 
-        Serial.println("--------------------------------------------------");
-        Serial.printf("[HỆ THỐNG] Uptime: %lu s | Trạng thái GPS: %s\n",
+                cdh.printf("[HỆ THỐNG] Uptime: %lu s | Trạng thái GPS: %s\n",
                       millis() / 1000,
                       hasFix ? "ĐÃ CHỐT TỌA ĐỘ (3D FIX)" : "ĐANG TÌM VỆ TINH (NO FIX)");
 
         if (!hasFix) {
-            Serial.printf("  - Số vệ tinh phát hiện: %d vệ tinh (cần tối thiểu 4 vệ tinh)\n", sats);
-            Serial.println("  - Đang quét tín hiệu vệ tinh ngoài không gian... Vui lòng chờ...");
+            cdh.printf("  - Số vệ tinh phát hiện: %d vệ tinh (cần tối thiểu 4 vệ tinh)\n", sats);
+            cdh.println("  - Đang quét tín hiệu vệ tinh ngoài không gian... Vui lòng chờ...");
         } else {
-            Serial.println(">>> THÔNG TIN ĐỊNH VỊ ĐÃ CHUYỂN ĐỔI (HUMAN-READABLE) <<<");
-            Serial.printf("  - Vĩ độ (Latitude)       : %.6f° %s\n", abs(lat), lat >= 0 ? "Bắc (N)" : "Nam (S)");
-            Serial.printf("  - Kinh độ (Longitude)    : %.6f° %s\n", abs(lng), lng >= 0 ? "Đông (E)" : "Tây (W)");
-            Serial.printf("  - Cao độ (Altitude)      : %.2f m (so với mực nước biển)\n", myGPS.getAltitude());
-            Serial.printf("  - Tốc độ di chuyển       : %.2f km/h\n", myGPS.getSpeed());
-            Serial.printf("  - Hướng di chuyển        : %.2f°\n", myGPS.getCourse());
-            Serial.printf("  - Số vệ tinh bám khóa    : %d vệ tinh\n", sats);
-            Serial.printf("  - Sai số mặt bằng (HDOP) : %.2f (%s)\n",
+            cdh.println(">>> THÔNG TIN ĐỊNH VỊ ĐÃ CHUYỂN ĐỔI (HUMAN-READABLE) <<<");
+            cdh.printf("  - Vĩ độ (Latitude)       : %.6f° %s\n", abs(lat), lat >= 0 ? "Bắc (N)" : "Nam (S)");
+            cdh.printf("  - Kinh độ (Longitude)    : %.6f° %s\n", abs(lng), lng >= 0 ? "Đông (E)" : "Tây (W)");
+            cdh.printf("  - Cao độ (Altitude)      : %.2f m (so với mực nước biển)\n", myGPS.getAltitude());
+            cdh.printf("  - Tốc độ di chuyển       : %.2f km/h\n", myGPS.getSpeed());
+            cdh.printf("  - Hướng di chuyển        : %.2f°\n", myGPS.getCourse());
+            cdh.printf("  - Số vệ tinh bám khóa    : %d vệ tinh\n", sats);
+            cdh.printf("  - Sai số mặt bằng (HDOP) : %.2f (%s)\n",
                           myGPS.getHDOP(),
                           myGPS.getHDOP() <= 1.5 ? "Lý tưởng" : (myGPS.getHDOP() <= 2.5 ? "Tốt" : "Trung bình"));
-            Serial.printf("  - Thời gian chuẩn UTC    : %s\n", myGPS.getTimeString().c_str());
+            cdh.printf("  - Thời gian chuẩn UTC    : %s\n", myGPS.getTimeString().c_str());
         }
-        Serial.println("--------------------------------------------------");
-    }
+            }
 }

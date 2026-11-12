@@ -1,22 +1,61 @@
-# Lab4-03c_GPS_PTITCube
+# Lab 4-03c: Chuyển Đổi Dữ Liệu GPS Bằng Thư Viện PTITCube (GPS PTITCube)
 
-**Giải mã Dữ liệu Định vị Vệ tinh (GNSS/GPS) bằng Thư viện PTITCube**
+> **Phân hệ:** Sensor & Scientific Payload  
+> **Thư viện yêu cầu:** `PTITCube Library v1.1.0`  
+> **Nền tảng:** PlatformIO / ESP32-WROOM-32 (OBC)
 
-Bài thực hành thuộc Phân hệ Cảm biến & Định vị (Lab 4) trong hệ thống PTITCube.
+---
 
-## 1. Mục tiêu
-- Sau khi quan sát bản tin NMEA thô ở ví dụ 03a và 03b, sử dụng thư viện **PTITCube** (`PTIT_GPS`) để giải mã và chuyển đổi luồng byte NMEA sang các thông số định vị thực tế có ý nghĩa:
-  - **Tọa độ địa lý:** Vĩ độ (Latitude) và Kinh độ (Longitude) dạng độ thập phân (Decimal Degrees).
-  - **Cao độ (Altitude):** Tính bằng mét (m) so với mực nước biển trung bình (WGS84).
-  - **Vận tốc (Speed) & Hướng di chuyển (Course):** Tính bằng km/h và độ (°).
-  - **Số vệ tinh bám khóa (Satellites in view):** Cần tối thiểu 4 vệ tinh để xác định tọa độ 3D.
-  - **Chỉ số sai số mặt bằng (HDOP):** Đánh giá độ tin cậy của vị trí hình học.
-  - **Thời gian chuẩn quốc tế (UTC):** Năm-Tháng-Ngày và Giờ:Phút:Giây đồng bộ trực tiếp từ đồng hồ nguyên tử của vệ tinh định vị.
-- Tự động điều khiển chân chuyển mạch MUX 74HC4066 (chọn GPS: GPIO 12, ngắt Camera: GPIO 14).
+## 📖 1. Mục Tiêu & Mô Tả Bài Thực Hành
 
-## 2. Phần cứng sử dụng
-- **ESP32 NodeMCU OBC**
-- **Module định vị GNSS:** Quectel L76X.
-- **IC chuyển mạch MUX:** 74HC4066.
-- **Cổng giao tiếp:** UART2 (RX2 = GPIO 16, TX2 = GPIO 17, Baudrate: `9600`).
-- **Serial Monitor:** USB UART (Baudrate: `115200`).
+Sử dụng thư viện PTITCube v1.1.0 để chuyển đổi dữ liệu NMEA thô sang các thông số người dùng có thể hiểu được: Latitude, Longitude, Altitude, Satellites, Fix Quality.
+
+---
+
+## 🔌 2. Sơ Đồ Chân Phần Cứng (Hardware Pinout)
+
+| Tín hiệu | Chân ESP32 | Mô tả |
+| :--- | :--- | :--- |
+| UART2 RX/TX | GPIO 16 / GPIO 17 | Cổng truyền nhận dữ liệu GNSS L76X |
+
+---
+
+## 🛠️ 3. Cấu Hình Phần Mềm & Thư Viện
+
+- **Thư viện cốt lõi:** Thư mục `lib/PTITCube` tích hợp sẵn bộ thư viện phiên bản mới nhất `v1.1.0` với các phân hệ phân lớp:
+  - `CDH`: Quản lý luồng xuất nhập dữ liệu `cdh` (Stream inheritance) và hệ thống tệp FAT32 trên thẻ nhớ MicroSD.
+  - `EPS`: Quản lý năng lượng, đọc IC MAX17048 qua I2C.
+  - `Sensor`: Đọc cụm cảm biến môi trường BMP280, cảm biến quán tính 6-DoF MPU6500, từ kế QMC5883L và định vị GNSS L76X.
+  - `COM`: Quản lý module vô tuyến LoRa Ebyte E32 qua giao tiếp UART2.
+- **Kênh giám sát Console:**
+  - **Công cụ:** `cdh (PTIT_CDH stream - 115200 baud)`
+  - **Tốc độ Baud:** `115200 bps`
+  - **Lưu ý chuẩn hóa:** Kể từ Lab 3, mọi luồng in debug console được chuẩn hóa qua đối tượng `cdh` (`PTIT_CDH cdh;`) kế thừa trực tiếp từ lớp `Stream`/`Print` của Arduino, thay thế hoàn toàn cho `Serial` thông thường.
+
+---
+
+## 🚀 4. Hướng Dẫn Biên Dịch & Nạp Firmware
+
+Sử dụng **PlatformIO CLI** hoặc giao diện **VSCode / PlatformIO IDE**:
+
+```bash
+# 1. Di chuyển vào thư mục dự án
+cd Lab4-03c_GPS_PTITCube
+
+# 2. Biên dịch mã nguồn
+pio run
+
+# 3. Nạp firmware vào vi điều khiển vệ tinh
+pio run -t upload
+
+# 4. Mở cửa sổ giám sát Serial Monitor
+pio device monitor -b 115200
+```
+
+---
+
+## 📝 5. Lưu Ý Kỹ Thuật
+
+- Cung cấp phương thức thân thiện lấy tọa độ trực tiếp không cần parse NMEA thủ công.
+- Không chèn các lệnh in `println()` trang trí dư thừa làm nghẽn bộ đệm UART khi vệ tinh vận hành ở tần số cao.
+- Kiểm tra kết nối cáp USB-UART và nguồn pin trước khi thực hiện nạp code.
