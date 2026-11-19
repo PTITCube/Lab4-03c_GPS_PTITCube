@@ -21,11 +21,11 @@ void loop() {
 
         int sats = myGPS.getSatellites();
         if (sats > 0) {
-            cdh.printf("[GPS] %d sats | Lat: %.6f, Lng: %.6f | Alt: %.1fm | Spd: %.1fkm/h | HDOP: %.1f\n",
+            cdh.printf("GPS: %d sats | Lat: %.6f, Lng: %.6f | Alt: %.1fm | Spd: %.1fkm/h | HDOP: %.1f\n",
                        sats, myGPS.getLat(), myGPS.getLng(),
                        myGPS.getAltitude(), myGPS.getSpeed(), myGPS.getHDOP());
         } else {
-            cdh.println("[GPS] Đang quét tìm vệ tinh...");
+            cdh.println("GPS: Đang quét tìm vệ tinh...");
         }
     }
 }
